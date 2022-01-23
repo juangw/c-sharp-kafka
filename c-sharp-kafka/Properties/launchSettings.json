@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "c-sharp-kafka": {
+      "commandName": "Project",
+      "commandLineArgs": "consumer"
+    }
+  }
+}
