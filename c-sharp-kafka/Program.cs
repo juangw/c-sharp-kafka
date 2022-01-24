@@ -7,32 +7,47 @@ namespace c_sharp_kafka
 {
     class Program
     {
+        public static string host = Environment.GetEnvironmentVariable("host") ?? "localhost:9092";
+
+        enum Modes
+        {
+            Producer,
+            Consumer
+        }
+
         public static Task Main(string[] args)
         {
-            if (args.Length != 1)
+            if (args.Length < 2)
             {
-                throw new ArgumentException("Missing arguement to start Consumer or Producer");
+                throw new ArgumentException("There should be at least 2 arguments for this application");
             }
 
             string mode = args[0];
+            if (!Enum.TryParse(mode, out Modes _))
+            {
+                throw new ArgumentException("Invalid mode argument value provided. Must be either: `Consumer` or `Producer`");
+            }
+            
+            string topic = args[1];
             switch (mode.ToLower())
             {
                 case "consumer":
                     Console.WriteLine("Creating Consumers & Consuming Message");
-                    ConsumeMessage();
+                    ConsumeMessage(topic);
                     return Task.CompletedTask;
                 case "producer":
                     Console.WriteLine("Creating Producer & Producing Message");
-                    return ProduceMessage();
+                    string message = args[2];
+                    return ProduceMessage(topic, message);
                 default:
                     throw new ArgumentException($"Run Mode Provided: {mode}, Must be either `consumer` or `producer`");
             }
 
         }
 
-        private static async Task ProduceMessage()
+        private static async Task ProduceMessage(string topic, string payload)
         {
-            var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
+            var config = new ProducerConfig { BootstrapServers = host };
 
             // If serializers are not specified, default serializers from
             // `Confluent.Kafka.Serializers` will be automatically used where
@@ -41,7 +56,7 @@ namespace c_sharp_kafka
             {
                 try
                 {
-                    var dr = await p.ProduceAsync("test-topic", new Message<Null, string> { Value = "test" });
+                    var dr = await p.ProduceAsync(topic, new Message<Null, string> { Value = payload });
                     Console.WriteLine($"Delivered '{dr.Value}' to '{dr.TopicPartitionOffset}'");
                 }
                 catch (ProduceException<Null, string> e)
@@ -51,12 +66,12 @@ namespace c_sharp_kafka
             }
         }
 
-        private static void ConsumeMessage()
+        private static void ConsumeMessage(string topic)
         {
             var conf = new ConsumerConfig
             {
                 GroupId = "test-consumer-group",
-                BootstrapServers = "localhost:9092",
+                BootstrapServers = host,
                 // Note: The AutoOffsetReset property determines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
@@ -67,7 +82,7 @@ namespace c_sharp_kafka
 
             using (var c = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
-                c.Subscribe("test-topic");
+                c.Subscribe(topic);
 
                 CancellationTokenSource cts = new CancellationTokenSource();
                 Console.CancelKeyPress += (_, e) => {
@@ -82,7 +97,16 @@ namespace c_sharp_kafka
                         try
                         {
                             var cr = c.Consume(cts.Token);
-                            Console.WriteLine($"Consumed message '{cr}' at: '{cr.TopicPartitionOffset}'.");
+                            Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
+                            switch (topic)
+                            {
+                                case "test-topic":
+                                    new Consumers.TestTopic().Run(cr.Message.Value);
+                                    break;
+                                default:
+                                    Console.WriteLine($"Topic: {topic} doesn't have a configured consumer action");
+                                    break;
+                            }
                         }
                         catch (ConsumeException e)
                         {

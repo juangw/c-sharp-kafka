@@ -2,7 +2,7 @@
   "profiles": {
     "c-sharp-kafka": {
       "commandName": "Project",
-      "commandLineArgs": "consumer"
+      "commandLineArgs": "Consumer test-topic hello-world"
     }
   }
 }
