@@ -1,0 +1,9 @@
+﻿{
+  "type" : "record",
+  "name" : "TestMessage",
+  "namespace" : "c_sharp_kafka.Schemas",
+  "fields" : [ {
+    "name" : "body",
+    "type" : "string"
+  } ]
+}
