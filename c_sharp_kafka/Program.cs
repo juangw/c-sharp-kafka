@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
+using c_sharp_kafka.Consumers;
+using c_sharp_kafka.Producers;
 
 namespace c_sharp_kafka
 {
@@ -51,7 +51,8 @@ namespace c_sharp_kafka
             switch (topic)
             {
                 case "test-topic":
-                    await new Producers.TestTopic().Send(schemaHost, host, topic, payload);
+                    TestTopicProducer testTopicProducer = new TestTopicProducer(schemaHost, host, topic);
+                    await testTopicProducer.Produce(payload);
                     break;
                 default:
                     Console.WriteLine($"Topic: {topic} doesn't have a configured producer action");
@@ -64,7 +65,8 @@ namespace c_sharp_kafka
             switch (topic)
             {
                 case "test-topic":
-                    new Consumers.TestTopic().Run(schemaHost, host);
+                    TestTopicConsumer testTopicConsumer = new TestTopicConsumer(schemaHost, host, topic, "test-consumer-group");
+                    testTopicConsumer.Consume();
                     break;
                 default:
                     Console.WriteLine($"Topic: {topic} doesn't have a configured consumer action");
