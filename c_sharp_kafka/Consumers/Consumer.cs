@@ -57,6 +57,7 @@ namespace c_sharp_kafka.Consumers
                     catch (ConsumeException e)
                     {
                         Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        Console.WriteLine(e.StackTrace);
                     }
                 }
             }

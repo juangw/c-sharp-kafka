@@ -2,7 +2,11 @@
   "profiles": {
     "c-sharp-kafka": {
       "commandName": "Project",
-      "commandLineArgs": "Consumer test-topic test"
+      "commandLineArgs": "Producer weather-topic Detroit"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
     }
   }
 }

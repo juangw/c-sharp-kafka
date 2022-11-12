@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using c_sharp_kafka.Consumers;
 using c_sharp_kafka.Producers;
@@ -28,6 +29,10 @@ namespace c_sharp_kafka
             {
                 throw new ArgumentException("Invalid mode argument value provided. Must be either: `Consumer` or `Producer`");
             }
+
+            var root = Directory.GetCurrentDirectory();
+            var dotenv = Path.Combine(root, ".env");
+            DotEnv.Load(dotenv);
             
             string topic = args[1];
             switch (mode.ToLower())
@@ -54,6 +59,10 @@ namespace c_sharp_kafka
                     TestTopicProducer testTopicProducer = new TestTopicProducer(schemaHost, host, topic);
                     await testTopicProducer.Produce(payload);
                     break;
+                case "weather-topic":
+                    WeatherTopicProducer weatherTopicProducer = new WeatherTopicProducer(schemaHost, host, topic);
+                    await weatherTopicProducer.Produce(payload);
+                    break;
                 default:
                     Console.WriteLine($"Topic: {topic} doesn't have a configured producer action");
                     break;
@@ -67,6 +76,10 @@ namespace c_sharp_kafka
                 case "test-topic":
                     TestTopicConsumer testTopicConsumer = new TestTopicConsumer(schemaHost, host, topic, "test-consumer-group");
                     testTopicConsumer.Consume();
+                    break;
+                case "weather-topic":
+                    WeatherTopicConsumer weatherTopicConsumer = new WeatherTopicConsumer(schemaHost, host, topic, "weather-consumer-group");
+                    weatherTopicConsumer.Consume();
                     break;
                 default:
                     Console.WriteLine($"Topic: {topic} doesn't have a configured consumer action");
